@@ -10,6 +10,5 @@ Note: `yarn global add elm` doesn't seem to work right on Linux.
 
 ## Getting started
 
-- `elm-package install`
-- `elm-reactor`
-- Navigate to `http://localhost:8000/hello.elm`
+- `elm reactor`
+- Navigate to [http://localhost:8000/hello.elm](http://localhost:8000/hello.elm)
