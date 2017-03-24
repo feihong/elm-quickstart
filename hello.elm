@@ -1,48 +1,71 @@
-module Main exposing (..)
-
-import Html exposing (Html, button, div, text)
+import Html exposing (Html, div, p, text, button)
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
+import Array
+import Random
 
 
 main =
-    Html.beginnerProgram
-        { model = model
-        , view = view
-        , update = update
-        }
+  Html.program
+    { init = init
+    , view = view
+    , update = update
+    , subscriptions = subscriptions
+    }
 
+
+greetings = Array.fromList [
+    "Hello World",
+    "Hola Mundo",
+    "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਦੁਨਿਆ",
+    "こんにちは世界",
+    "你好世界",
+    "Përshendetje Botë",
+    "مرحبا بالعالم",
+    "Բարեւ, աշխարհ",
+    "হ্যালো দুনিয়া",
+    "Saluton mondo",
+    "გამარჯობა მსოფლიო"]
+
+
+generate : Cmd Msg
+generate = 
+  let 
+    upper = (Array.length greetings) - 1
+  in
+    Random.generate NewNumber (Random.int 0 upper)
 
 
 -- MODEL
 
-
-type alias Model =
-    Int
+type alias Model = Int
 
 
-model : Model
-model =
-    0
-
+init : (Model, Cmd Msg)
+init = (0, generate)
 
 
 -- UPDATE
 
 
 type Msg
-    = Increment
-    | Decrement
+  = Generate
+  | NewNumber Int
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    case msg of
-        Increment ->
-            model + 1
+  case msg of
+    Generate -> (model, generate)
 
-        Decrement ->
-            model - 1
+    NewNumber num -> (num, Cmd.none)
 
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model = Sub.none
 
 
 -- VIEW
@@ -50,8 +73,13 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+  let greeting =
+    case Array.get model greetings of
+      Just i -> i
+      Nothing -> "?"
+  in
     div []
-        [ button [ onClick Decrement ] [ text "-" ]
-        , div [] [ text (toString model) ]
-        , button [ onClick Increment ] [ text "+" ]
-        ]
+      [ p [] [ text (toString model) ]
+      , p [] [ text greeting ]
+      , button [ class "btn btn-default", onClick Generate ] [ text "Click me!" ]
+      ]
