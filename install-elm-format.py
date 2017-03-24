@@ -8,12 +8,12 @@ def run(cmd):
     subprocess.call(cmd, shell=isinstance(cmd, str))
 
 if sys.platform == 'darwin':
-    url = url_tmpl.format(platform='mac') + 'elm-format-0.18-0.5.2-alpha-mac-x64.tgz'
+    url = url_tmpl.format(platform='mac')
 else:
     url = url_tmpl.format(platform='linux')
 
 if not op.exists('elm-format'):
     run('wget -O elm-format.tgz {}'.format(url))
     run('tar -xf elm-format.tgz')
-    
+
 run('mv elm-format /usr/local/bin')
