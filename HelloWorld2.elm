@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Html exposing (Html, div, p, text, button)
-import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Array
 import Random
@@ -19,14 +18,6 @@ main =
         }
 
 
-generate greetings =
-    let
-        upper =
-            (Array.length greetings) - 1
-    in
-        Random.generate NewIndex (Random.int 0 upper)
-
-
 
 -- MODEL
 
@@ -36,12 +27,12 @@ type alias Greetings =
 
 
 type alias Model =
-    { index : Int, greetings : Greetings }
+    { current : String, greetings : Greetings }
 
 
 initModel : Model
 initModel =
-    { index = 0, greetings = Array.empty }
+    { current = "", greetings = Array.empty }
 
 
 
@@ -54,6 +45,7 @@ type Msg
     | NewIndex Int
 
 
+fetchGreetings : () -> Cmd Msg
 fetchGreetings () =
     let
         request =
@@ -62,26 +54,44 @@ fetchGreetings () =
         Http.send HandleGreetingsResponse request
 
 
+generateIndex : Array.Array a -> Cmd Msg
+generateIndex greetings =
+    let
+        max =
+            (Array.length greetings) - 1
+    in
+        Random.generate NewIndex (Random.int 0 max)
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         HandleGreetingsResponse response ->
             let
-                newModel =
+                greetings =
                     case response of
-                        Ok results ->
-                            { model | greetings = results }
+                        Ok result ->
+                            result
 
                         Err _ ->
-                            model
+                            Array.empty
             in
-                ( newModel, generate newModel.greetings )
+                ( { model | greetings = greetings }, generateIndex greetings )
 
         Generate ->
-            ( model, generate model.greetings )
+            ( model, generateIndex model.greetings )
 
-        NewIndex num ->
-            ( { model | index = num }, Cmd.none )
+        NewIndex index ->
+            let
+                current =
+                    case Array.get index model.greetings of
+                        Just elem ->
+                            elem
+
+                        Nothing ->
+                            ""
+            in
+                ( { model | current = current }, Cmd.none )
 
 
 
@@ -90,17 +100,7 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    let
-        greeting =
-            case Array.get model.index model.greetings of
-                Just i ->
-                    i
-
-                Nothing ->
-                    ""
-    in
-        div []
-            [ p [] [ text (toString model.index) ]
-            , p [] [ text greeting ]
-            , button [ onClick Generate ] [ text "Click me!" ]
-            ]
+    div []
+        [ p [] [ text model.current ]
+        , button [ onClick Generate ] [ text "Click me!" ]
+        ]
