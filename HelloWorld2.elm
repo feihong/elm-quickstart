@@ -6,33 +6,17 @@ import Html.Events exposing (onClick)
 import Array
 import Random
 import Json.Decode exposing (..)
+import Http
 
 
 main : Program Never Model Msg
 main =
     Html.program
-        { init = init
+        { init = ( initModel, fetchGreetings () )
         , view = view
         , update = update
         , subscriptions = \_ -> Sub.none
         }
-
-
-greetingsJson =
-    """
-[ "Hello World"
-, "Hola Mundo"
-, "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ ਦੁਨਿਆ"
-, "こんにちは世界"
-, "你好世界"
-, "Përshendetje Botë"
-, "مرحبا بالعالم"
-, "Բարեւ, աշխարհ"
-, "হ্যালো দুনিয়া"
-, "Saluton mondo"
-, "გამარჯობა მსოფლიო"
-]
-"""
 
 
 generate greetings =
@@ -47,22 +31,17 @@ generate greetings =
 -- MODEL
 
 
+type alias Greetings =
+    Array.Array String
+
+
 type alias Model =
-    { index : Int, greetings : Array.Array String }
+    { index : Int, greetings : Greetings }
 
 
-init : ( Model, Cmd Msg )
-init =
-    let
-        greetings =
-            case decodeString (array string) greetingsJson of
-                Ok results ->
-                    results
-
-                Err _ ->
-                    Array.empty
-    in
-        ( { index = 0, greetings = greetings }, Cmd.none )
+initModel : Model
+initModel =
+    { index = 0, greetings = Array.empty }
 
 
 
@@ -70,13 +49,34 @@ init =
 
 
 type Msg
-    = Generate
+    = HandleGreetingsResponse (Result Http.Error Greetings)
+    | Generate
     | NewIndex Int
+
+
+fetchGreetings () =
+    let
+        request =
+            Http.get "greetings.json" (array string)
+    in
+        Http.send HandleGreetingsResponse request
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        HandleGreetingsResponse response ->
+            let
+                newModel =
+                    case response of
+                        Ok results ->
+                            { model | greetings = results }
+
+                        Err _ ->
+                            model
+            in
+                ( newModel, generate newModel.greetings )
+
         Generate ->
             ( model, generate model.greetings )
 
@@ -97,10 +97,10 @@ view model =
                     i
 
                 Nothing ->
-                    "???"
+                    ""
     in
         div []
             [ p [] [ text (toString model.index) ]
             , p [] [ text greeting ]
-            , button [ class "btn btn-default", onClick Generate ] [ text "Click me!" ]
+            , button [ onClick Generate ] [ text "Click me!" ]
             ]
