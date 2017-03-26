@@ -8,6 +8,10 @@
 
 Note: `yarn global add elm` doesn't seem to work right on Linux.
 
+### Useful libraries
+
+`npm install -g elm-test elm-css elm-live`
+
 ## Getting started
 
 - `elm reactor`
