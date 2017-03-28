@@ -50,7 +50,7 @@ init =
 type Msg
     = FetchGreetings
     | HandleGreetingsResponse (Result Http.Error Greetings)
-    | Generate
+    | GenerateIndex
     | NewIndex Int
 
 
@@ -64,8 +64,11 @@ delay time msg =
 fetchGreetings : () -> Cmd Msg
 fetchGreetings () =
     let
+        decoder =
+            array string
+
         request =
-            Http.get "greetings.json" (array string)
+            Http.get "greetings.json" decoder
     in
         Http.send HandleGreetingsResponse request
 
@@ -75,8 +78,12 @@ generateIndex greetings =
     let
         max =
             (Array.length greetings) - 1
+
+        -- Generates numbers between 0 and max, inclusive
+        generator =
+            (Random.int 0 max)
     in
-        Random.generate NewIndex (Random.int 0 max)
+        Random.generate NewIndex generator
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -97,7 +104,7 @@ update msg model =
             in
                 ( { model | greetings = greetings }, generateIndex greetings )
 
-        Generate ->
+        GenerateIndex ->
             ( model, generateIndex model.greetings )
 
         NewIndex index ->
