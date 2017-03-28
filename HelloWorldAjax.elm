@@ -6,12 +6,15 @@ import Array
 import Random
 import Json.Decode exposing (..)
 import Http
+import Process
+import Task exposing (Task)
+import Time exposing (Time)
 
 
 main : Program Never Model Msg
 main =
     Html.program
-        { init = ( initModel, fetchGreetings () )
+        { init = init
         , view = view
         , update = update
         , subscriptions = \_ -> Sub.none
@@ -32,7 +35,12 @@ type alias Model =
 
 initModel : Model
 initModel =
-    { current = "", greetings = Array.empty }
+    { current = "Loading greetings...", greetings = Array.empty }
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( initModel, delay (Time.second * 3) FetchGreetings )
 
 
 
@@ -40,9 +48,17 @@ initModel =
 
 
 type Msg
-    = HandleGreetingsResponse (Result Http.Error Greetings)
+    = FetchGreetings
+    | HandleGreetingsResponse (Result Http.Error Greetings)
     | Generate
     | NewIndex Int
+
+
+delay : Time -> msg -> Cmd msg
+delay time msg =
+    Process.sleep time
+        |> Task.andThen (always <| Task.succeed msg)
+        |> Task.perform identity
 
 
 fetchGreetings : () -> Cmd Msg
@@ -66,6 +82,9 @@ generateIndex greetings =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        FetchGreetings ->
+            ( model, fetchGreetings () )
+
         HandleGreetingsResponse response ->
             let
                 greetings =
