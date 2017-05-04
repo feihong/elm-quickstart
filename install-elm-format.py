@@ -2,7 +2,7 @@ import sys
 import subprocess
 import os.path as op
 
-url_tmpl = 'https://github.com/avh4/elm-format/releases/download/0.5.2-alpha/elm-format-0.18-0.5.2-alpha-{platform}-x64.tgz'
+url_tmpl = 'https://github.com/avh4/elm-format/releases/download/0.6.1-alpha/elm-format-0.18-0.6.1-alpha-{platform}-x64.tgz'
 
 def run(cmd):
     subprocess.call(cmd, shell=isinstance(cmd, str))
